@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-from proyecto.dataframeProcessor import Dataframe
+from dataframeProcessor import DataframeProcessor
 from grafico_polar import GraficoPolar
 
 
@@ -29,10 +29,10 @@ def menu(op):
             print("Archivo no seleccionado")
             return
 
-        df = Dataframe(file).procesar().get_df()
+        df = DataframeProcessor(file).procesar().get_df() #esto sirve para obtener el csv y limpia las columnas luego **
 
         print("Generando gráficos polares...")
-        GraficoPolar(df).generar_por_dia()
+        GraficoPolar(df).generar_por_dia() # ** pasamos ese dataframe a grafico plar
 
         print("Gráficos generados correctamente")
 
