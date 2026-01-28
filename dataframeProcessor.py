@@ -1,6 +1,6 @@
 import pandas as pd
 
-class Dataframe:
+class DataframeProcessor:
     def __init__(self, file):
         self.file = file
         self.df = None
@@ -33,13 +33,13 @@ class Dataframe:
         self.df["hora"] = self.df["fecha_hora"].dt.hour
         return self
 
-    def convertir_corriente(self):
+    def convertir_corriente(self): #convierte la columna a valores float
         """Convierte la columna de corriente a float"""
         self.df["I motor act, A"] = (
             self.df["I motor act, A"]
-            .astype(str)
-            .str.replace(",", ".", regex=False)
-            .astype(float)
+            .astype(str) #primero a texto
+            .str.replace(",", ".", regex=False) #se cambia coma por punto
+            .astype(float) #convertir a float
         )
         return self
 

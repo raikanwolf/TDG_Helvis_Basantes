@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-from dataframe import Dataframe
+from proyecto.dataframeProcessor import Dataframe
 from grafico_polar import GraficoPolar
 
 
