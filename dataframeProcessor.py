@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class DataframeProcessor:
     def __init__(self, file):
         self.__file = file
@@ -7,9 +8,11 @@ class DataframeProcessor:
 
     def cargar(self):
         """Carga el CSV"""
-        self.__df = pd.read_csv(self.__file,encoding="cp1251",sep=";")
-        #print(self.__df.columns.tolist())
-
+        self.__df = pd.read_csv(
+            self.__file,
+            encoding="cp1251",
+            sep=";"
+        )
         return self
 
     def limpiar_columnas(self):
@@ -23,24 +26,27 @@ class DataframeProcessor:
         return self
 
     def convertir_fechas(self):
-        """Convierte fecha/hora"""
+        """
+        Convierte fecha/hora de forma robusta.
+        Soporta distintos formatos (dd/mm/yyyy, yyyy/mm/dd, etc.)
+        """
         self.__df["fecha_hora"] = pd.to_datetime(
             self.__df["fecha_hora"],
-            format="%d/%m/%Y %H:%M",
-            errors="coerce"
+            errors="coerce",
+            #dayfirst=True
         )
 
         self.__df["fecha"] = self.__df["fecha_hora"].dt.date
         self.__df["hora"] = self.__df["fecha_hora"].dt.hour
         return self
 
-    def convertir_corriente(self): #convierte la columna a valores float
+    def convertir_corriente(self):
         """Convierte la columna de corriente a float"""
         self.__df["I motor act, A"] = (
             self.__df["I motor act, A"]
-            .astype(str) #primero a texto
-            .str.replace(",", ".", regex=False) #se cambia coma por punto
-            .astype(float) #convertir a float
+            .astype(str)
+            .str.replace(",", ".", regex=False)
+            .astype(float)
         )
         return self
 
