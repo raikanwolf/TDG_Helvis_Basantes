@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class GraficoPolar:
-    def __init__(self, df, carpeta_salida="graficos/por_dia"):
+    def __init__(self, df, carpeta_salida="graficos"):
         self.__df = df
         self.__carpeta = carpeta_salida
         os.makedirs(self.__carpeta, exist_ok=True)
@@ -14,9 +14,11 @@ class GraficoPolar:
 
         for dia in dias:
             self._graficar_dia(dia)
+        
+        print(f"\n✔ Gráficos generados en la ruta:")
+        print(f"📁 {os.path.abspath(self.__carpeta)}\n")
 
     def _graficar_dia(self, dia):
-        """Método protegido: uso interno de la clase"""
         df_dia = self.__df[self.__df["fecha"] == dia]
 
         df_hourly = (
@@ -26,9 +28,9 @@ class GraficoPolar:
             .reset_index()
         )
 
-        # 🚨 Protección: no hay datos válidos
+        # Protección: día sin datos
         if df_hourly.empty:
-            print(f"[AVISO] No hay datos válidos para el día {dia}. Se omite el gráfico.")
+            print(f"[AVISO] Día {dia} sin datos válidos.")
             return
 
         valores = df_hourly["I motor act, A"].values
@@ -39,45 +41,43 @@ class GraficoPolar:
 
         angulos = (horas / 24) * 2 * np.pi
 
-        # Cerrar el gráfico polar
+        # Cerrar la curva
         angulos = np.append(angulos, angulos[0])
         valores = np.append(valores, valores[0])
 
-        fig = plt.figure(figsize=(8, 8))
+        # Crear figura limpia
+        fig = plt.figure(figsize=(6, 6))
         ax = fig.add_subplot(111, polar=True)
 
-        ax.plot(angulos, valores, linewidth=2.5)
+        # Línea azul (único elemento visual)
+        ax.plot(
+            angulos,
+            valores,
+            color="blue",
+            linewidth=2
+        )
 
+        # Configuración polar básica
         ax.set_theta_zero_location("N")
         ax.set_theta_direction(-1)
 
-        # ⚠️ Protección contra valores constantes (ej: todos 0)
-        max_val = max(valores)
-        if max_val == 0:
-            ax.set_ylim(0, 1)
-        else:
-            ax.set_ylim(0, max_val * 1.1)
+        # Quitar TODO el ruido visual
+        ax.set_axis_off()
 
-        # Escala radial
-        paso = 5
-        maximo = np.ceil(max_val if max_val > 0 else 1)
-        ticks = np.arange(0, maximo + paso, paso)
-        ax.set_yticks(ticks)
-        ax.set_yticklabels([f"{t:.0f}" for t in ticks], fontsize=8)
+        # Ajustar límites radiales
+        max_val = np.max(valores)
+        ax.set_ylim(0, max_val * 1.05 if max_val > 0 else 1)
 
-        # Etiquetas horarias
-        ax.set_xticks(np.linspace(0, 2 * np.pi, 24, endpoint=False))
-        ax.set_xticklabels([f"{h:02d}:00" for h in range(24)], fontsize=8)
-
-        plt.title(
-            f"Carta Amperimétrica - Promedio por Hora ({dia})",
-            fontsize=14,
-            pad=20
-        )
-
+        # Guardar imagen
         filename = os.path.join(
             self.__carpeta,
             f"carta_{dia}.png"
         )
-        plt.savefig(filename, dpi=300, bbox_inches="tight")
+
+        plt.savefig(
+            filename,
+            dpi=224,
+            bbox_inches="tight",
+            pad_inches=0
+        )
         plt.close(fig)
