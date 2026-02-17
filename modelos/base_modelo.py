@@ -1,13 +1,17 @@
 from abc import ABC, abstractmethod
 
-#creamos una interfaz y metodos abstractos para definir el que
-#y despues el como
 class ModeloIA(ABC):
-
     @abstractmethod
     def cargar(self):
+        """Carga los pesos del modelo en memoria."""
         pass
 
     @abstractmethod
-    def predecir(self, X):
+    def preprocesar(self, entrada_cruda):
+        """Transforma la entrada (ruta imagen, df, array) al formato del tensor."""
+        pass
+
+    @abstractmethod
+    def predecir(self, entrada_procesada):
+        """Realiza la inferencia."""
         pass

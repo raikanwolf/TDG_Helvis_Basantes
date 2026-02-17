@@ -3,6 +3,24 @@ import tkinter as tk
 from tkinter import filedialog
 from dataframeProcessor import DataframeProcessor
 from grafico_polar import GraficoPolar
+from modelos.cnn_v1 import CNNv1
+
+
+# 🔹 Cargar el modelo UNA SOLA VEZ (más eficiente)
+RUTA_MODELO = os.path.join("pesos", "cnn_v1.tflite")
+modelo = None
+
+
+def cargar_modelo():
+    global modelo
+    if modelo is None:
+        try:
+            modelo = CNNv1(RUTA_MODELO)
+            modelo.cargar()
+            print("✅ Modelo cargado en memoria.")
+        except Exception as e:
+            print(f"❌ Error al cargar el modelo: {e}")
+            modelo = None
 
 
 def seleccionar_archivo():
@@ -18,7 +36,23 @@ def seleccionar_archivo():
             ("Todos", "*.*")
         )
     )
-    root.destroy() #Destruye completamente la ventana raíz y libera recursos
+    root.destroy()
+    return file
+
+
+def seleccionar_imagen():
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+
+    file = filedialog.askopenfilename(
+        title="Seleccionar imagen",
+        filetypes=(
+            ("Imagen", "*.png;*.jpg;*.jpeg"),
+            ("Todos", "*.*")
+        )
+    )
+    root.destroy()
     return file
 
 
@@ -29,13 +63,34 @@ def menu(op):
             print("Archivo no seleccionado")
             return
 
-        df = DataframeProcessor(file).procesar().get_df() #esto sirve para obtener el csv y limpia las columnas luego **
+        df = DataframeProcessor(file).procesar().get_df()
 
         print("Generando gráficos polares...")
-        GraficoPolar(df).generar_por_dia() # ** pasamos ese dataframe a grafico plar
-
+        GraficoPolar(df).generar_por_dia()
         print("Gráficos generados correctamente")
-    
+
+    elif op == 2:
+        ruta_imagen = seleccionar_imagen()
+        if not ruta_imagen:
+            print("Imagen no seleccionada")
+            return
+
+        if modelo is None:
+            print("⚠️ El modelo no está cargado.")
+            return
+
+        try:
+            resultado = modelo.predecir(ruta_imagen)
+
+            print("\nRESULTADO DE LA PREDICCIÓN")
+            print("-" * 40)
+            print(f"Clase predicha : {resultado['clase']}")
+            print(f"Índice         : {resultado['indice']}")
+            print(f"Confianza      : {resultado['confianza']:.2%}")
+
+        except Exception as e:
+            print(f"❌ Error al predecir: {e}")
+
     elif op == 3:
         file = seleccionar_archivo()
         if not file:
@@ -64,8 +119,7 @@ def menu(op):
 
         print("\nEstadísticas descriptivas:")
         print(df.describe(include="all"))
-        
-        
+
         print("\n🧪 CONTROL DE CALIDAD DE DATOS")
         print("-" * 40)
 
@@ -102,21 +156,25 @@ def menu(op):
             print("\n⚠️ La columna 'I motor act, A' no existe en el DataFrame")
 
 
-
 if __name__ == '__main__':
     '''menu de opciones'''
-    op=0
-   
-    while(op!=4):
+
+    # 🔹 Cargar modelo al iniciar el programa
+    cargar_modelo()
+
+    op = 0
+
+    while(op != 4):
 
         print("\t.:IA electrosumergible:.")
         print("acciones disponibles")
-        print("1-Cargar datos") #listo
-        print("2-Entrenar modelo")
-        print("3-")
-        print("4-salir")
+        print("1-Cargar datos")
+        print("2-Probar modelo (imagen)")
+        print("3-Revision de datos")
+        print("4-Salir")
 
-        op=int(input("ingrese el numero de opcion: "))
+        op = int(input("ingrese el numero de opcion: "))
         print("\n")
-        if (op!=4):
+
+        if op != 4:
             menu(op)
