@@ -73,8 +73,8 @@ class CNNv1(ModeloIA):
         # 3. Convertir a array NumPy (alto, ancho, canales)
         img_array = np.array(img, dtype=np.float32)
 
-        # 4. Normalizar (0-255 → 0-1)
-        img_array = img_array / 255.0
+        # 4. Normalizar (0-255 → 0-1) 
+        #img_array = img_array / 255.0 #no es necesario, el modelo ya lo reescala
 
         # 5. Expandir dimensiones para crear el batch (1, alto, ancho, canales)
         img_tensor = np.expand_dims(img_array, axis=0)
@@ -118,8 +118,16 @@ class CNNv1(ModeloIA):
         clase_idx = np.argmax(prediccion, axis=1)[0]
         confianza = np.max(prediccion)
 
+        # umbral minimo
+        UMBRAL = 0.6
+
+        if confianza < UMBRAL:
+            clase = "Desconocido"
+        else:
+            clase = self.clases.get(clase_idx, "Desconocido")
+
         return {
-            "clase": self.clases.get(clase_idx, "Desconocido"),
+            "clase": clase,
             "indice": int(clase_idx),
             "confianza": float(confianza),
             "raw_output": prediccion.tolist()
